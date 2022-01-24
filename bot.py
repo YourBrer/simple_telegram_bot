@@ -7,13 +7,13 @@ bot = telebot.TeleBot(config.token, parse_mode=None)
 
 help_message = 'Как пользоваться:\n\n' \
                    'Чтобы получить данные записи, отправь сообщение следующего формата:\n' \
-                   '? имя_сайта\n' \
+                   '? запрос\n' \
                    'Пример: ? авито\n' \
                    'Регистр значения не имеет (можно использовать заглавные и строчные буквы, без разницы)\n\n' \
                    'Чтобы сохранить данные для сайта, отправь сообщение следующего формата:\n' \
-                   '! название_сайта, логин, пароль\n' \
+                   '! название, логин, пароль\n' \
                    'Пример: ! авито, someLogin, kurva666\n' \
-                   'В имени сайта регистр не важен. Важно отделять запятыми имя сайта, логин и пароль.'
+                   'В наименовании регистр не важен. Важно отделять запятыми наименование, логин и пароль.'
 
 
 @bot.message_handler(commands=['start', 'help', 'как'])
@@ -50,19 +50,20 @@ def main(message):
             conn.commit()
             bot.send_message(message.chat.id, f'Добавлена запись для сайта {site_name}, логин: {login}, пароль: {password}')
         elif message.text.strip()[0] == '?':
-            site_name = message.text[1:].strip().lower()
-            cur.execute(f"SELECT * FROM passwords WHERE site_name='{site_name}' ;")
+            request_name = message.text[1:].strip().lower()
+            cur.execute(f"SELECT * FROM passwords WHERE site_name LIKE '%{request_name}%';")
             results = cur.fetchall()
             if len(results):
-                result_message = f'Для сайта "{site_name}" найдено:\n'
+                result_message = f'По запросу "{request_name}" найдено:\n'
                 for result in results:
-                    result_message += f'логин: {result[2]}, пароль: {result[3]}\n'
+                    print(result)
+                    result_message += f'наименование: {result[1]}, логин: {result[2]}, пароль: {result[3]}\n'
             else:
-                result_message = f'Для сайта "{site_name}" записей не найдено 😔'
+                result_message = f'По запросу "{request_name}" записей не найдено 😔'
             bot.send_message(message.chat.id, result_message)
-        else:
+        elif message.text:
             bot.send_message(message.chat.id, 'Шо ты от меня хочешь, не пойму? Чтобы посмотреть, как правильно '
                                               'составить запрос, жми на ссылку /help')
 
 
-bot.polling(none_stop=True)
+bot.infinity_polling(interval=0, timeout=20)
