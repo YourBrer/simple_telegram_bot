@@ -2,7 +2,6 @@ import telebot
 import config
 import sqlite3
 
-# токен берется из файла конфигов, который я, само собой, заливать не буду))
 bot = telebot.TeleBot(config.token, parse_mode=None)
 
 help_message = 'Как пользоваться:\n\n' \
